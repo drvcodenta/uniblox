@@ -6,6 +6,8 @@
 
 import express from 'express';
 import cors from 'cors';
+import cartRoutes from './routes/cart.routes';
+import checkoutRoutes from './routes/checkout.routes';
 
 const app = express();
 
@@ -18,6 +20,8 @@ app.get('/health', (_req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Routes will be mounted here in Phase 2 & 3
+// --- API Routes ---
+app.use('/cart', cartRoutes);
+app.use('/checkout', checkoutRoutes);
 
 export default app;
