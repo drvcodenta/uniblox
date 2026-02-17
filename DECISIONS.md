@@ -72,3 +72,33 @@
 3. **Reusability** — The checkout logic can be called from any entry point (REST API, CLI tool, future GraphQL layer) without duplication.
 
 The trade-off is slightly more files and indirection, but for a project with non-trivial logic (discount validation, order counting, analytics aggregation), the clarity is worth it.
+
+---
+
+## Decision: Monorepo with Separate `/client` Folder
+
+**Context:** The assignment says "frontend is a plus." How should the React frontend be structured relative to the existing Express backend?
+
+**Options Considered:**
+- Option A: Fully integrated — serve React from Express (single `package.json`)
+- Option B: Separate `/client` folder with its own `package.json` (monorepo-style)
+- Option C: Completely separate repository
+
+**Choice:** Option B — Monorepo with `/client` folder
+
+**Why:** This gives clean separation while keeping everything in one repo for review. The backend and frontend have independent dependencies, dev servers, and build processes. Vite's proxy forwards API calls to Express during development, so CORS "just works." This is the standard pattern used by most production teams and signals understanding of modular architecture. The trade-off is two `npm install` commands, but the structure neatly mirrors how fullstack teams actually operate.
+
+---
+
+## Decision: Monochromatic B&W Design System
+
+**Context:** The frontend needed a visual design approach. Should we use a standard component library (Material UI, Chakra) or build a custom design system?
+
+**Options Considered:**
+- Option A: Use a pre-built component library (MUI, Chakra, shadcn/ui)
+- Option B: Custom monochromatic design system with Tailwind CSS
+
+**Choice:** Option B — Custom B&W design system
+
+**Why:** A custom monochromatic palette (pure black `#000` and white `#FFF`) eliminates cognitive noise and forces focus on the product and interactions. This is the visual language of premium brands — it signals intentional design rather than default styling. Using Tailwind CSS v4's `@theme` directive lets us define design tokens (colors, fonts, spacing) in one place. The trade-off is more upfront work than dropping in MUI, but the result is a distinctive, interview-worthy UI that demonstrates frontend capability beyond "just works."
+

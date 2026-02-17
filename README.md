@@ -1,129 +1,111 @@
-# Uniblox Ecommerce Store API
+# Uniblox Ecommerce Store
 
-A RESTful API for an ecommerce store with cart management, checkout, discount system, and admin analytics. Built with **Node.js**, **TypeScript**, and **Express**.
+A full-stack ecommerce application with cart, checkout, discount engine, and admin dashboard. Built with **Node.js + TypeScript + Express** (backend) and **React + TypeScript + Tailwind CSS** (frontend).
 
 ## Quick Start
 
 ```bash
-# Install dependencies
+# ── Backend ──
 npm install
+npm run dev          # Starts Express on http://localhost:3000
 
-# Start development server (with auto-reload)
-npm run dev
+# ── Frontend (separate terminal) ──
+cd client
+npm install
+npm run dev          # Starts Vite on http://localhost:5173
 
-# Run tests
-npm test
-
-# Build for production
-npm run build
-npm start
+# ── Tests ──
+npm test             # Runs Jest (from root)
 ```
 
-The server runs on `http://localhost:3000` by default.
+## Architecture
+
+```
+uniblox/
+├── src/                    # Express backend
+│   ├── models/
+│   │   ├── types.ts        # TypeScript interfaces
+│   │   └── db.ts           # In-memory store (seeded products)
+│   ├── services/
+│   │   ├── cart.service.ts
+│   │   ├── checkout.service.ts
+│   │   └── discount.service.ts
+│   ├── controllers/        # Request/response handlers
+│   ├── routes/             # Express route definitions
+│   └── tests/              # Jest unit tests
+├── client/                 # React frontend (Vite)
+│   └── src/
+│       ├── components/     # Header, CartPanel, ProductCard, Toast, Confetti
+│       ├── pages/          # Shop, Checkout, Admin
+│       ├── context/        # StoreContext (cart state)
+│       └── lib/            # API client
+├── DECISIONS.md
+└── README.md
+```
 
 ## API Endpoints
 
-### Health Check
+| Method | Endpoint                   | Description                          |
+|--------|----------------------------|--------------------------------------|
+| GET    | `/health`                  | Health check                         |
+| GET    | `/products`                | List all products                    |
+| POST   | `/cart/add`                | Add item to cart                     |
+| GET    | `/cart/:userId`            | View user's cart                     |
+| POST   | `/checkout`                | Checkout (with optional coupon)      |
+| POST   | `/admin/generate-discount` | Generate discount code (if eligible) |
+| GET    | `/admin/stats`             | Store analytics                      |
 
-| Method | Endpoint  | Description         |
-|--------|-----------|---------------------|
-| GET    | `/health` | Server health check |
-
-### Cart
-
-| Method | Endpoint        | Description        |
-|--------|-----------------|---------------------|
-| POST   | `/cart/add`     | Add item to cart    |
-| GET    | `/cart/:userId` | View user's cart    |
-
-**POST /cart/add**
+### Example: Add to Cart
 ```json
-{
-  "userId": "user1",
-  "productId": "p1",
-  "quantity": 2
-}
+POST /cart/add
+{ "userId": "guest", "productId": "p1", "quantity": 2 }
 ```
 
-### Checkout
-
-| Method | Endpoint    | Description                            |
-|--------|-------------|----------------------------------------|
-| POST   | `/checkout` | Process checkout (with optional coupon) |
-
-**POST /checkout**
+### Example: Checkout with Discount
 ```json
-{
-  "userId": "user1",
-  "discountCode": "A1B2C3D4"
-}
+POST /checkout
+{ "userId": "guest", "discountCode": "A1B2C3D4" }
 ```
 
-### Admin
+## Seeded Products
 
-| Method | Endpoint                    | Description                    |
-|--------|-----------------------------|--------------------------------|
-| POST   | `/admin/generate-discount`  | Generate discount code (if eligible) |
-| GET    | `/admin/stats`              | View store analytics           |
-
-## Available Products (Seeded)
-
-| ID  | Name                | Price    |
-|-----|---------------------|----------|
-| p1  | Wireless Mouse      | $29.99   |
-| p2  | Mechanical Keyboard | $79.99   |
-| p3  | USB-C Hub           | $49.99   |
-| p4  | Monitor Stand       | $34.99   |
-| p5  | Webcam HD           | $59.99   |
-
-> Prices are stored in cents internally (e.g., 2999 = $29.99)
+| ID  | Name                | Price  |
+|-----|---------------------|--------|
+| p1  | Wireless Mouse      | $29.99 |
+| p2  | Mechanical Keyboard | $79.99 |
+| p3  | USB-C Hub           | $49.99 |
+| p4  | Monitor Stand       | $34.99 |
+| p5  | Webcam HD           | $59.99 |
 
 ## Discount System
 
-- Every **5th order** (configurable) generates eligibility for a **10% discount** code.
-- Admin calls `POST /admin/generate-discount` to check and issue the code.
-- Codes are single-use and tracked with `used/unused` status.
+- Every **5th order** (configurable) enables a discount code generation.
+- Admin calls `POST /admin/generate-discount` to issue the code.
+- Codes give **10% off** and are **single-use** (tracked with `used/unused` status).
 
-## Project Structure
+## Frontend Features
 
-```
-src/
-├── models/
-│   ├── types.ts          # TypeScript interfaces
-│   └── db.ts             # In-memory data store
-├── services/
-│   ├── cart.service.ts    # Cart business logic
-│   ├── checkout.service.ts # Checkout & order logic
-│   └── discount.service.ts # Discount generation & validation
-├── controllers/
-│   ├── cart.controller.ts
-│   ├── checkout.controller.ts
-│   └── admin.controller.ts
-├── routes/
-│   ├── cart.routes.ts
-│   ├── checkout.routes.ts
-│   └── admin.routes.ts
-├── tests/
-│   ├── discount.service.test.ts
-│   └── checkout.service.test.ts
-├── app.ts                # Express config
-└── server.ts             # Entry point
-```
+- **Monochromatic Design** — strict B&W palette with Inter font
+- **Product Grid** — 3-column layout with hover scale + fade-in "Add to Cart"
+- **Slide-over Cart** — spring-animated panel from the right
+- **Ghost Toasts** — fade-in/out notifications on actions
+- **Checkout** — discount code input, nth-order progress, animated totals
+- **Monochrome Confetti** — black & gray particles on order success
+- **Admin Console** — revenue/items/orders metrics + discount codes table
 
 ## Testing
 
 ```bash
-npm test
+npm test    # 19 tests across 2 suites
 ```
 
-Unit tests cover:
-- **Discount Service**: Code generation on nth-order, duplicate prevention, validation, single-use enforcement
-- **Checkout Service**: Total calculation, discount application, invalid code rejection, cart clearing, order counting
+- **Discount Service** — nth-order generation, duplicate prevention, validation, single-use
+- **Checkout Service** — total calculation, discount application, cart clearing, edge cases
 
 ## Tech Stack
 
-- **Runtime**: Node.js
-- **Language**: TypeScript (strict mode)
-- **Framework**: Express
-- **Testing**: Jest + ts-jest
-- **ID Generation**: uuid
+| Layer    | Technology                                          |
+|----------|-----------------------------------------------------|
+| Backend  | Node.js, TypeScript, Express                        |
+| Frontend | React, TypeScript, Vite, Tailwind CSS, Framer Motion |
+| Testing  | Jest, ts-jest                                       |
