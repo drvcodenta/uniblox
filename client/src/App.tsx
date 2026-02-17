@@ -10,7 +10,7 @@ function App() {
     <StoreProvider>
       <div className="min-h-screen">
         <Header />
-        <main className="pt-20">
+        <main className="pt-16">
           <Routes>
             <Route path="/" element={<Shop />} />
             <Route path="/checkout" element={<Checkout />} />

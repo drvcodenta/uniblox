@@ -59,6 +59,25 @@ export function getCart(userId: string): { items: CartItem[]; subtotal: number }
 }
 
 /**
+ * Remove one unit of an item from the user's cart.
+ * If quantity reaches 0, the item is removed entirely.
+ */
+export function removeFromCart(userId: string, productId: string): CartItem[] {
+    const cart = store.carts.get(userId);
+    if (!cart) return [];
+
+    const index = cart.findIndex(item => item.productId === productId);
+    if (index === -1) return cart;
+
+    cart[index].quantity -= 1;
+    if (cart[index].quantity <= 0) {
+        cart.splice(index, 1);
+    }
+
+    return cart;
+}
+
+/**
  * Clear the user's cart (called after successful checkout).
  */
 export function clearCart(userId: string): void {

@@ -78,6 +78,19 @@ export async function fetchCart(userId: string) {
     return res.json();
 }
 
+export async function removeFromCartAPI(userId: string, productId: string) {
+    const res = await fetch(`${API_BASE}/cart/remove`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, productId }),
+    });
+    if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to remove from cart');
+    }
+    return res.json();
+}
+
 export async function checkoutAPI(userId: string, discountCode?: string): Promise<CheckoutResult> {
     const res = await fetch(`${API_BASE}/checkout`, {
         method: 'POST',

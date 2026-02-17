@@ -1,13 +1,10 @@
 /**
  * Store Context — global state for cart management.
- *
- * Uses React Context + useReducer for predictable state updates.
- * The cart is synced with the backend on every add operation.
- * A simple userId ("guest") is used for demo purposes.
+ * Syncs with backend on add/remove operations.
  */
 
 import { createContext, useContext, useReducer, useCallback, type ReactNode } from 'react';
-import { addToCartAPI, fetchCart, type CartItem, type Product } from '../lib/api';
+import { addToCartAPI, removeFromCartAPI, fetchCart, type CartItem, type Product } from '../lib/api';
 
 const USER_ID = 'guest';
 
@@ -54,6 +51,7 @@ interface StoreContextValue {
     userId: string;
     itemCount: number;
     addToCart: (product: Product) => Promise<void>;
+    removeFromCart: (productId: string) => Promise<void>;
     refreshCart: () => Promise<void>;
     toggleCart: (open?: boolean) => void;
     clearCart: () => void;
@@ -70,7 +68,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             const data = await fetchCart(USER_ID);
             dispatch({ type: 'SET_CART', items: data.items, subtotal: data.subtotal });
         } catch {
-            // Cart may not exist yet — that's fine
+            // Cart may not exist yet
         }
     }, []);
 
@@ -78,8 +76,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         try {
             await addToCartAPI(USER_ID, product.id, 1);
             await refreshCart();
-            dispatch({ type: 'SHOW_TOAST', message: `${product.name} added to cart` });
+            dispatch({ type: 'SHOW_TOAST', message: `${product.name} added` });
             setTimeout(() => dispatch({ type: 'HIDE_TOAST' }), 1500);
+        } catch (err: any) {
+            dispatch({ type: 'SHOW_TOAST', message: err.message });
+            setTimeout(() => dispatch({ type: 'HIDE_TOAST' }), 2000);
+        }
+    }, [refreshCart]);
+
+    const removeFromCart = useCallback(async (productId: string) => {
+        try {
+            await removeFromCartAPI(USER_ID, productId);
+            await refreshCart();
         } catch (err: any) {
             dispatch({ type: 'SHOW_TOAST', message: err.message });
             setTimeout(() => dispatch({ type: 'HIDE_TOAST' }), 2000);
@@ -102,7 +110,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const itemCount = state.items.reduce((sum, item) => sum + item.quantity, 0);
 
     return (
-        <StoreContext.Provider value={{ state, userId: USER_ID, itemCount, addToCart, refreshCart, toggleCart, clearCart, showToast }}>
+        <StoreContext.Provider value={{
+            state, userId: USER_ID, itemCount,
+            addToCart, removeFromCart, refreshCart,
+            toggleCart, clearCart, showToast
+        }}>
             {children}
         </StoreContext.Provider>
     );

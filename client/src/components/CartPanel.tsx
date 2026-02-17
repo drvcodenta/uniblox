@@ -1,26 +1,21 @@
-/**
- * CartPanel — slide-over cart from the right.
- * Uses Framer Motion AnimatePresence for smooth entry/exit.
- */
-
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Minus, Plus } from 'lucide-react';
+import { X, Minus, Plus, ShoppingBag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../context/StoreContext';
-import { formatPrice, addToCartAPI, fetchCart } from '../lib/api';
+import { formatPrice, addToCartAPI } from '../lib/api';
+import productImages from '../lib/productImages';
 
 export default function CartPanel() {
-    const { state, toggleCart, userId } = useStore();
+    const { state, toggleCart, userId, removeFromCart, refreshCart } = useStore();
     const navigate = useNavigate();
 
-    const handleQuantityChange = async (productId: string, delta: number) => {
-        if (delta > 0) {
-            await addToCartAPI(userId, productId, 1);
-        }
-        // Note: backend doesn't have a remove endpoint yet, but add works for increment
-        const data = await fetchCart(userId);
-        // We'd need to dispatch here, but for now just refresh
-        window.location.reload(); // Simple approach for demo
+    const handleIncrement = async (productId: string) => {
+        await addToCartAPI(userId, productId, 1);
+        await refreshCart();
+    };
+
+    const handleDecrement = async (productId: string) => {
+        await removeFromCart(productId);
     };
 
     const handleCheckout = () => {
@@ -37,8 +32,7 @@ export default function CartPanel() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="fixed inset-0 bg-black/20 z-50"
+                        className="fixed inset-0 bg-black/30 z-[60]"
                         onClick={() => toggleCart(false)}
                     />
 
@@ -47,58 +41,69 @@ export default function CartPanel() {
                         initial={{ x: '100%' }}
                         animate={{ x: 0 }}
                         exit={{ x: '100%' }}
-                        transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                        className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-bg z-50 border-l border-border flex flex-col"
+                        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                        className="fixed right-0 top-0 bottom-0 w-full max-w-[420px] bg-white z-[70] shadow-2xl flex flex-col"
                     >
                         {/* Header */}
-                        <div className="flex items-center justify-between px-6 h-16 border-b border-border">
-                            <h2 className="text-sm font-semibold uppercase tracking-wider">Cart</h2>
-                            <button
-                                onClick={() => toggleCart(false)}
-                                className="btn-press p-1"
-                                aria-label="Close cart"
-                            >
-                                <X size={18} strokeWidth={1.5} />
+                        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+                            <h2 className="text-base font-semibold">Cart</h2>
+                            <button onClick={() => toggleCart(false)} className="p-1 hover:opacity-60 transition-opacity">
+                                <X size={20} strokeWidth={1.5} />
                             </button>
                         </div>
 
                         {/* Items */}
-                        <div className="flex-1 overflow-y-auto px-6 py-4">
+                        <div className="flex-1 overflow-y-auto">
                             {state.items.length === 0 ? (
-                                <div className="flex items-center justify-center h-full text-muted text-sm">
-                                    Your cart is empty
+                                <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-3">
+                                    <ShoppingBag size={40} strokeWidth={1} />
+                                    <p className="text-sm">Your cart is empty</p>
                                 </div>
                             ) : (
-                                <ul className="space-y-4">
+                                <ul>
                                     {state.items.map((item) => (
-                                        <li key={item.productId} className="flex items-center justify-between py-3 border-b border-border last:border-0">
-                                            <div className="flex-1">
-                                                <p className="text-sm font-medium">{item.name}</p>
-                                                <p className="text-xs text-muted mt-0.5">
-                                                    {formatPrice(item.price)} × {item.quantity}
-                                                </p>
+                                        <li key={item.productId} className="flex gap-4 px-6 py-4 border-b border-gray-50">
+                                            {/* Thumbnail */}
+                                            <div className="w-16 h-16 bg-gray-50 rounded overflow-hidden flex-shrink-0">
+                                                {productImages[item.productId] ? (
+                                                    <img
+                                                        src={productImages[item.productId]}
+                                                        alt={item.name}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-gray-300 text-lg">
+                                                        {item.name.charAt(0)}
+                                                    </div>
+                                                )}
                                             </div>
-                                            <div className="flex items-center gap-3">
-                                                <div className="flex items-center border border-border rounded">
+
+                                            {/* Info */}
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-medium truncate">{item.name}</p>
+                                                <p className="text-xs text-gray-400 mt-0.5">{formatPrice(item.price)}</p>
+
+                                                {/* Quantity controls */}
+                                                <div className="flex items-center gap-3 mt-2">
                                                     <button
-                                                        onClick={() => handleQuantityChange(item.productId, -1)}
-                                                        className="btn-press p-1.5 text-muted hover:text-primary transition-colors"
-                                                        aria-label="Decrease quantity"
+                                                        onClick={() => handleDecrement(item.productId)}
+                                                        className="w-7 h-7 flex items-center justify-center border border-gray-200 rounded hover:bg-gray-50 transition-colors"
                                                     >
                                                         <Minus size={12} />
                                                     </button>
-                                                    <span className="text-xs font-medium w-6 text-center">{item.quantity}</span>
+                                                    <span className="text-sm font-medium w-4 text-center">{item.quantity}</span>
                                                     <button
-                                                        onClick={() => handleQuantityChange(item.productId, 1)}
-                                                        className="btn-press p-1.5 text-muted hover:text-primary transition-colors"
-                                                        aria-label="Increase quantity"
+                                                        onClick={() => handleIncrement(item.productId)}
+                                                        className="w-7 h-7 flex items-center justify-center border border-gray-200 rounded hover:bg-gray-50 transition-colors"
                                                     >
                                                         <Plus size={12} />
                                                     </button>
                                                 </div>
-                                                <span className="text-sm font-medium w-16 text-right">
-                                                    {formatPrice(item.price * item.quantity)}
-                                                </span>
+                                            </div>
+
+                                            {/* Line total */}
+                                            <div className="text-sm font-medium self-start pt-0.5">
+                                                {formatPrice(item.price * item.quantity)}
                                             </div>
                                         </li>
                                     ))}
@@ -108,16 +113,14 @@ export default function CartPanel() {
 
                         {/* Footer */}
                         {state.items.length > 0 && (
-                            <div className="border-t border-border px-6 py-4 space-y-4">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm text-muted">Subtotal</span>
-                                    <span className="text-lg font-semibold tracking-tight">
-                                        {formatPrice(state.subtotal)}
-                                    </span>
+                            <div className="border-t border-gray-100 px-6 py-5">
+                                <div className="flex items-center justify-between mb-4">
+                                    <span className="text-sm text-gray-500">Subtotal</span>
+                                    <span className="text-lg font-semibold">{formatPrice(state.subtotal)}</span>
                                 </div>
                                 <button
                                     onClick={handleCheckout}
-                                    className="btn-press w-full bg-primary text-bg py-3 text-sm font-semibold uppercase tracking-wider hover:opacity-90 transition-opacity"
+                                    className="w-full bg-black text-white py-3 text-sm font-semibold uppercase tracking-wider rounded hover:bg-gray-900 transition-colors"
                                 >
                                     Checkout
                                 </button>

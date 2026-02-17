@@ -1,9 +1,5 @@
-/**
- * Toast — ghost notification that fades in at bottom-center.
- * Auto-dismisses after 1.5s (controlled by StoreContext).
- */
-
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Check } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 
 export default function Toast() {
@@ -13,12 +9,13 @@ export default function Toast() {
         <AnimatePresence>
             {state.toastMessage && (
                 <motion.div
-                    initial={{ opacity: 0, y: 8 }}
+                    initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -8 }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                    className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] bg-primary text-bg px-5 py-2.5 text-sm font-medium rounded-full shadow-lg"
+                    transition={{ duration: 0.2 }}
+                    className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-2 bg-white border border-gray-200 shadow-lg px-4 py-2.5 rounded-lg text-sm"
                 >
+                    <Check size={14} className="text-green-600" />
                     {state.toastMessage}
                 </motion.div>
             )}
