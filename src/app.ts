@@ -9,6 +9,7 @@ import cors from 'cors';
 import cartRoutes from './routes/cart.routes';
 import checkoutRoutes from './routes/checkout.routes';
 import adminRoutes from './routes/admin.routes';
+import { store } from './models/db';
 
 const app = express();
 
@@ -19,6 +20,11 @@ app.use(express.json());
 // --- Health check ---
 app.get('/health', (_req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// --- Products catalog ---
+app.get('/products', (_req, res) => {
+    res.json(store.products);
 });
 
 // --- API Routes ---

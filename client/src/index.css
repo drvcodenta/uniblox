@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+/* ─── Stealth Design System ─── */
+
+@theme {
+  --color-bg: #ffffff;
+  --color-surface: #fafafa;
+  --color-primary: #000000;
+  --color-secondary: #666666;
+  --color-border: #e5e5e5;
+  --color-muted: #999999;
+  --color-success: #000000;
+  --color-danger: #dc2626;
+
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+
+  --ease-spring: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* ─── Global Reset & Typography ─── */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-bg);
+  color: var(--color-primary);
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+}
+
+/* ─── Premium Typography ─── */
+
+h1, h2, h3, h4 {
+  letter-spacing: -0.02em;
+  font-weight: 600;
+}
+
+/* ─── Scrollbar (Minimal) ─── */
+
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 2px;
+}
+
+/* ─── Button Press Effect ─── */
+
+.btn-press {
+  transition: transform 0.1s var(--ease-spring);
+}
+
+.btn-press:active {
+  transform: scale(0.98);
+}
+
+/* ─── Ghost Notification ─── */
+
+@keyframes ghost-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes ghost-out {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-8px); }
+}
