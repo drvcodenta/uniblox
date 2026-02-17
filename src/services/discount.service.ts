@@ -30,14 +30,7 @@ export function generateDiscountCode(): DiscountCode | null {
         return null;
     }
 
-    // Prevent duplicate generation for the same order count milestone
-    // by checking if we already generated a code for this count
-    const alreadyGenerated = store.discountCodes.some(
-        (_code, _index) => store.discountCodes.length > 0 &&
-            Math.floor(store.orderCount / config.nthOrder) <= store.discountCodes.length
-    );
-
-    // Simpler duplicate check: count how many codes should exist vs how many do
+    // Prevent duplicate generation: check how many codes should exist vs how many do
     const expectedCodeCount = Math.floor(orderCount / config.nthOrder);
     if (store.discountCodes.length >= expectedCodeCount) {
         return null; // Already generated for this milestone
