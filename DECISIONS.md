@@ -1,33 +1,5 @@
 # Design Decisions
 
-## Decision: In-Memory Data Store
-
-**Context:** The application needs a data persistence layer to store products, carts, orders, and discount codes. The question was whether to use a real database or keep things simple.
-
-**Options Considered:**
-- Option A: Use SQLite or MongoDB for real persistence
-- Option B: In-memory Object Store using TypeScript Maps and Arrays
-
-**Choice:** Option B — In-memory Object Store
-
-**Why:** The assignment explicitly states that in-memory storage is acceptable. Using a real database would add setup complexity (connection strings, migrations, docker) without adding value for the scope of this exercise. The in-memory approach boots instantly, has zero dependencies, and is easy to reason about. The trade-off is that data doesn't survive server restarts, which is acceptable here. If this were production, the service layer is already abstracted enough to swap in a real database with minimal refactoring.
-
----
-
-## Decision: Admin-Triggered Coupon Generation
-
-**Context:** When should discount codes be generated? Automatically at checkout, or manually by an admin?
-
-**Options Considered:**
-- Option A: Auto-generate at checkout — when the nth order is placed, include the coupon code in the checkout response
-- Option B: Admin API endpoint — an admin explicitly calls `POST /admin/generate-discount` to check eligibility and generate codes
-
-**Choice:** Option B — Admin API endpoint
-
-**Why:** The assignment specifically asks for an admin API to generate discount codes. While auto-generation provides better UX (the customer sees the reward instantly), admin-triggered generation gives the business control over when and how discounts are issued. This also keeps the checkout flow simple — it only applies existing codes, it doesn't generate new ones. The separation of concerns makes each endpoint easier to test and reason about independently.
-
----
-
 ## Decision: userId-Based Cart (No Sessions/Cookies)
 
 **Context:** How should we identify which cart belongs to which user? Traditional web apps use sessions and cookies, but this is a backend API.
@@ -38,13 +10,42 @@
 
 **Choice:** Option B — userId-based Map
 
-**Why:** Since there's no frontend and testing happens via Postman/curl, cookie-based sessions would add unnecessary complexity. Passing `userId` in the request body is explicit, stateless from the HTTP perspective, and makes API testing straightforward. The trade-off is that anyone can access any cart by knowing the userId — in a real system, this would be replaced by JWT authentication. But for this assignment, simplicity and testability won out.
+**Why:** passing `userId` in the request body is stateless from the HTTP perspective, and makes API testing straightforward.
+The trade-off is that anyone can access any cart by knowing the userId — in a real system, this would be replaced by JWT authentication.
+
+---
+
+## Decision: In-Memory Data Store
+
+**Context:** application needs a data persistence layer to store data. question - whether to use a real database or keep things simple?
+
+**Options Considered:**
+- Option A: use db for real persistence
+- Option B: in-memory
+
+**Choice:** Option B
+
+**Why:** using a real database would add setup complexity (connection strings, migrations, docker) without adding value for the scope of this exercise. The in-memory approach boots instantly, has zero dependencies, and is easy to reason about. The trade-off is that data doesn't survive server restarts, which is acceptable here. If this were production, the service layer is already abstracted enough to swap in a real database with minimal refactoring.
+
+---
+
+## Decision: Admin-Triggered Coupon Generation
+
+**Context:** when should discount codes be generated? Automatically at checkout, or manually by an admin?
+
+**Options Considered:**
+- Option A: auto-generate at checkout — include the coupon code in the checkout response
+- Option B: admin API endpoint
+
+**Choice:** Option B
+
+**Why:** while auto-generation provides better UX (the customer sees the reward instantly), admin-triggered generation gives the business control over when and how discounts are issued. This also keeps the checkout flow simple — it only applies existing codes, it doesn't generate new ones. The separation of concerns makes each endpoint easier to test and reason about independently.
 
 ---
 
 ## Decision: Discount Code Status Flag vs. Deletion
 
-**Context:** After a discount code is used at checkout, should it be deleted from the store or just marked as used?
+**Context:** after a discount code is used at checkout, should it be deleted from the store or just marked as used?
 
 **Options Considered:**
 - Option A: Delete the code after use (simple, saves memory)
@@ -58,7 +59,7 @@
 
 ## Decision: Service Layer for Business Logic
 
-**Context:** Where should the core business logic (calculate totals, validate discounts, generate codes) live? Inline in route handlers, or separated into its own layer?
+**Context:** where should the core business logic (calculate totals, validate discounts, generate codes) live? Inline in route handlers, or separated into its own layer?
 
 **Options Considered:**
 - Option A: Write all logic directly in Express route handlers/controllers (inline approach)
@@ -87,18 +88,3 @@ The trade-off is slightly more files and indirection, but for a project with non
 **Choice:** Option B — Monorepo with `/client` folder
 
 **Why:** This gives clean separation while keeping everything in one repo for review. The backend and frontend have independent dependencies, dev servers, and build processes. Vite's proxy forwards API calls to Express during development, so CORS "just works." This is the standard pattern used by most production teams and signals understanding of modular architecture. The trade-off is two `npm install` commands, but the structure neatly mirrors how fullstack teams actually operate.
-
----
-
-## Decision: Monochromatic B&W Design System
-
-**Context:** The frontend needed a visual design approach. Should we use a standard component library (Material UI, Chakra) or build a custom design system?
-
-**Options Considered:**
-- Option A: Use a pre-built component library (MUI, Chakra, shadcn/ui)
-- Option B: Custom monochromatic design system with Tailwind CSS
-
-**Choice:** Option B — Custom B&W design system
-
-**Why:** A custom monochromatic palette (pure black `#000` and white `#FFF`) eliminates cognitive noise and forces focus on the product and interactions. This is the visual language of premium brands — it signals intentional design rather than default styling. Using Tailwind CSS v4's `@theme` directive lets us define design tokens (colors, fonts, spacing) in one place. The trade-off is more upfront work than dropping in MUI, but the result is a distinctive, interview-worthy UI that demonstrates frontend capability beyond "just works."
-
