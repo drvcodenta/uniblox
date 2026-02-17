@@ -1,6 +1,6 @@
 ### New generation Ecommerce Store(Video Link)
 
-[![watch the newgen ecommerce](https://img.youtube.com/vi/31DUpk-68Ck/0.jpg)](https://www.youtube.com)
+[![watch the newgen ecommerce](https://img.youtube.com/vi/31DUpk-68Ck/0.jpg)](https://www.youtube.com/watch?v=31DUpk-68Ck)
 
 
 ```bash
